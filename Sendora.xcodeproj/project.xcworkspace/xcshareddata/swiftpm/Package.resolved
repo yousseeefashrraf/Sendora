@@ -1,5 +1,5 @@
 {
-  "originHash" : "fc056ca7916ed818ce8cf28eaf37caf5bd27786a890a91807960ad4069819601",
+  "originHash" : "88c54faab41eb40eff31608e480bafe2e198aaea3d9e2f816f4a8d98b6edf860",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -143,6 +143,15 @@
       "state" : {
         "revision" : "102a647b573f60f73afdce5613a51d71349fe507",
         "version" : "1.30.0"
+      }
+    },
+    {
+      "identity" : "swiftdefaults",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/yousseeefashrraf/SwiftDefaults",
+      "state" : {
+        "revision" : "a76f689ea14c7f9370ade99f57c99ee3ccc81ce1",
+        "version" : "0.0.6"
       }
     }
   ],

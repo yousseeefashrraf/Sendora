@@ -34,3 +34,139 @@ final class SendoraTests: XCTestCase {
     }
 
 }
+
+final class EmailTestAuh: XCTestCase{
+    let email = "yousseeefashraf@gmail.com"
+    let pass = "12@Y.com"
+    
+    func testSignUp() async{
+
+        
+        let expected = AuthError.verificationEmailSent
+        
+        
+        do{
+             try await AuthenticationServices.shared.signUp(withEmail: email, password: pass, confirmationPassword: pass)
+        } catch{
+            var result = error
+            XCTAssertEqual(result as! AuthError, expected)
+
+        }
+       
+    }
+    
+    func testSendEmail() async {
+        do{
+            try await AuthenticationServices.shared.sendVerificationEmail()
+        } catch{
+            XCTFail()
+        }
+    }
+    
+    func testIfUserCanLoginWithoutVerification() async{
+        let email = "yousseeefashraf@gmail.com"
+        let pass = "12@Y.com"
+        
+        let expected = AuthError.needsVerification
+        
+        
+        let _ =  try? await AuthenticationServices.shared.signUp(withEmail: email, password: pass, confirmationPassword: pass)
+        
+        
+        do {
+            try await AuthenticationServices.shared.signIn(withEmail: email, password: pass)
+        } catch{
+            let result = error
+            XCTAssertEqual(result , expected)
+            
+        }
+    }
+        
+    
+    func testIfUserCanLoginAfterVerification() async {
+        let email = "yousseeefashraf@gmail.com"
+        let pass = "12@Y.com"
+        
+        do {
+            try await AuthenticationServices.shared.signIn(withEmail: email, password: pass)
+         
+
+        } catch{
+            XCTFail()
+
+        }
+        
+    }
+
+        
+    }
+    
+final class GoogleTestAuh: XCTestCase{
+    let email = "yousseeefashraf@gmail.com"
+    let pass = "12@Y.com"
+    
+    func testSignUp() async{
+
+        
+        let expected = AuthError.verificationEmailSent
+        
+        
+        do{
+             try await AuthenticationServices.shared.signUp(withEmail: email, password: pass, confirmationPassword: pass)
+        } catch{
+            var result = error
+            XCTAssertEqual(result as! AuthError, expected)
+
+        }
+       
+    }
+    
+    func testSendEmail() async {
+        do{
+            try await AuthenticationServices.shared.sendVerificationEmail()
+        } catch{
+            XCTFail()
+        }
+    }
+    
+    func testIfUserCanLoginWithoutVerification() async{
+        let email = "yousseeefashraf@gmail.com"
+        let pass = "12@Y.com"
+        
+        let expected = AuthError.needsVerification
+        
+        
+        let _ =  try? await AuthenticationServices.shared.signUp(withEmail: email, password: pass, confirmationPassword: pass)
+        
+        
+        do {
+            try await AuthenticationServices.shared.signIn(withEmail: email, password: pass)
+        } catch{
+            let result = error
+            XCTAssertEqual(result , expected)
+            
+        }
+    }
+        
+    
+    func testIfUserCanLoginAfterVerification() async {
+        let email = "yousseeefashraf@gmail.com"
+        let pass = "12@Y.com"
+        
+        do {
+            try await AuthenticationServices.shared.signIn(withEmail: email, password: pass)
+         
+
+        } catch{
+            XCTFail()
+
+        }
+        
+    }
+
+        
+    }
+
+
+    
+

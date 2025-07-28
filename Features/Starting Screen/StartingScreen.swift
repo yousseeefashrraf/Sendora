@@ -93,11 +93,13 @@ struct StartingInfoScreen: View{
 }
 
 struct ButtonView: View{
+    @EnvironmentObject var routerViewModel: RouterViewModel
     let label: String
     let action: ()->()
     var body: some View{
         Button {
-            action()
+            routerViewModel.routeToSignUp()
+            
         } label: {
             HStack{
                 Spacer()

@@ -11,7 +11,8 @@ import GoogleSignInSwift
 import AuthenticationServices
 
 struct SwitchAuthView: View{
-  
+    @EnvironmentObject var routerViewModel: RouterViewModel
+
   var authType: AuthType
   var body: some View{
     HStack{
@@ -19,9 +20,15 @@ struct SwitchAuthView: View{
         Text("Don't Have An Account?")
         Text("Sign Up")
           .bold()
+          .onTapGesture {
+              routerViewModel.routeToSignUp()
+          }
       } else {
         Text("Already Have An Account?")
         Text("Sign In")
+              .onTapGesture {
+                  routerViewModel.routeToSignIn()
+              }
           .bold()
       }
     
