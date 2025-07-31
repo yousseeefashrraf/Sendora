@@ -1,7 +1,7 @@
 
 enum AppAlert: Equatable {
     case auth(AuthError)
-    
+    case upload(UploadError)
 }
 
 enum AuthError: String,Error {
@@ -17,6 +17,8 @@ enum AuthError: String,Error {
     
     unknow = "Unknown error occured, please try again.",
     
+    cancelled = "Signing in is canceled.",
+    
     wrongEmailOrPass = "Email or password may not exist.",
          
     wrongPassword = "Wrong password.",
@@ -25,6 +27,14 @@ enum AuthError: String,Error {
     
     verificationEmailSent = "A verification Email has been sent to your Email account."
     
+}
+
+enum UploadError: String, Error{
+    case image = "Error while trying to upload the image."
+}
+enum FirestoreError: String, Error{
+    case invalidReadOperatioin = "Error fetching data. Please try again later.",
+    invalidCreateOperating = "Error creating data. Please try again later." // will change based on the operation type ferther on by including a variable in the Collections 
 }
 
 

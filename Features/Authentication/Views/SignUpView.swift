@@ -20,7 +20,7 @@ struct SignUpView: View {
   
   var body: some View {
     ZStack(alignment: .bottom){
-      VStack(spacing: -100){
+      VStack(spacing: -40){
         
         Image("community")
           .resizable()
@@ -28,9 +28,7 @@ struct SignUpView: View {
           .frame(height: 350)
           .clipped()
           .frame(maxWidth: .infinity)
-        
-          .ignoresSafeArea()
-        
+                
         ZStack{
           Color.white
           
@@ -89,8 +87,9 @@ struct SignUpView: View {
             .foregroundStyle(Color.background)
             
             
-            AnotherSignInMethodView(authType: type)
-            
+            AnotherSignInMethodView(authType: type, alertsViewModel: alertsViewModel)
+              .padding(.bottom, 60)
+
             Spacer()
             
           }
@@ -134,10 +133,12 @@ struct SignUpView: View {
 
       }
       .animation(.bouncy.speed(0.6))
-      
+      .padding(.bottom, 80)
+
       
       
     }
+    .ignoresSafeArea()
     
     
   }

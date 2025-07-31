@@ -81,7 +81,7 @@ struct LoginView: View {
             Spacer()
             
             
-            AnotherSignInMethodView(authType: .signIn)
+            AnotherSignInMethodView(authType: .signIn, alertsViewModel: alertsViewModel)
             
             Spacer()
             
@@ -130,6 +130,8 @@ struct LoginView: View {
       
       
     }
+    .ignoresSafeArea()
+
   }
 }
 

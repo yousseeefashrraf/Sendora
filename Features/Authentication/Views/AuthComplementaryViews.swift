@@ -160,7 +160,9 @@ struct ConfirmationButtonView: View{
 }
 
 struct AnotherSignInMethodView: View{
+  
   var authType: AuthType
+    @ObservedObject var alertsViewModel: AlertsViewModel
   var body: some View{
     HStack{
       Spacer()
@@ -176,7 +178,20 @@ struct AnotherSignInMethodView: View{
       .padding(20)
       .background(Color.background)
       .clipShape(RoundedRectangle(cornerRadius: 35))
-      
+      .onTapGesture {
+          Task{
+              do{
+                  try await AuthenticationServices.shared.signInWithGoogle()
+              } catch {
+                  if let error = error as? AuthError{
+                      alertsViewModel.configureAnAlert(alert: .auth(error))
+                  }
+                  
+              }
+              
+          }
+          
+      }
       Spacer()
       
       SignInWithAppleButton(authType == .signIn ? .signIn : .signUp,onRequest: { _ in }, onCompletion: { _ in })

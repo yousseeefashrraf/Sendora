@@ -1,0 +1,398 @@
+//
+//  InformationView.swift
+//  Sendora
+//
+//  Created by Youssef Ashraf on 29/07/2025.
+//
+
+import SwiftUI
+import Foundation
+import PhotosUI
+
+enum InformationTabs{
+    case name, bio, email, profilePicture
+}
+
+enum PhotoPickerSaveOn{
+    case onSubmit, onSelect
+}
+
+struct EditorView: View{
+    var sectionName: String
+    var keyPath: WritableKeyPath<UserModel, String?>
+    @State var text = ""
+    @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var routerViewModel: RouterViewModel
+    @Environment(\.dismiss) var dismiss
+    var key: CodingKey
+    var body: some View{
+        
+        ZStack{
+            Color.black
+                .opacity(0.08)
+                .ignoresSafeArea()
+            
+            VStack(alignment: .leading){
+                
+                HStack{
+                    Button {
+                        dismiss.callAsFunction()
+                    } label: {
+                        Text("Cancel")
+                            .foregroundStyle(.red)
+                        
+                    }
+                    
+                    
+                    Spacer()
+                    Button {
+                        if(!text.isEmpty){
+                            Task{
+                                do{
+                                    try await userViewModel.updateUserProperty(keypath: keyPath, newValue: text, forKey: key)
+                                } catch{
+                                    //use alert model here
+                                }
+                            }
+                           
+                           
+                            dismiss.callAsFunction()
+                        }
+                    } label: {
+                        Text("Save")
+                            .foregroundStyle(.blue.opacity(text.isEmpty ? 0.8 : 1))
+                            
+                         
+                        
+                    }
+                    .disabled(text.isEmpty)
+
+                }
+                
+                Section(sectionName) {
+                    
+                GlassyEffectView {
+                    VStack{
+                        TextField("", text: $text)
+                            .padding(4)
+                           
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 55)
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 15))
+                .opacity(0.5)
+                
+                    
+                   
+                   
+                }
+                Text("Your \(sectionName.lowercased()) will be public for everyone to see.")
+                    .padding(.top, 10)
+                
+                Spacer()
+              
+                
+            }
+            .foregroundStyle(.black.opacity(0.6))
+            .padding()
+            
+        }
+        .onAppear{
+            text = userViewModel.dbUser?[keyPath: keyPath] ?? ""
+        }
+        
+        
+        
+    }
+}
+
+struct GlassyEffectView<Content: View>: View{
+    
+    let content: () -> Content
+    
+    
+    var body: some View{
+        ZStack{
+            RoundedRectangle(cornerRadius: 20)
+            
+                .fill(.white)
+                .opacity(0.7)
+                .shadow(color: .glassWhite,radius: 10.0)
+            
+            content()
+        }
+    }
+}
+
+struct EditorPreviewView: View{
+    var sectionName: String
+    var isEditable: Bool = true
+    var keyPath: WritableKeyPath<UserModel, String?>
+    @EnvironmentObject var userViewModel: UserViewModel
+    var body: some View{
+        
+        
+        let text = userViewModel.dbUser?[keyPath: keyPath] ?? "No \(sectionName.lowercased()) yet."
+        
+        VStack(alignment: .leading){
+            Section(sectionName) {
+                GlassyEffectView{
+                    HStack(){
+                        Text("\(text)")
+                            .padding()
+                        if (isEditable){
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .resizable()
+                                .scaledToFit()
+                                .padding(20)
+                                .blur(radius: 0.6)
+                            
+                            
+                        }
+                        
+                    }
+                   
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(height: 57)
+                .background(.ultraThinMaterial)
+                .foregroundStyle(.gray.opacity(0.8))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                
+            }
+            
+            
+        }
+        
+    }
+}
+
+struct ProfileImageView: View{
+    var size: CGFloat
+
+    var uiImage: UIImage?
+    var body: some View{
+        
+            ZStack{
+                Color.blue
+                    .opacity(0.7)
+                    .blur(radius: 20)
+                GlassyEffectView{
+                    VStack{
+
+                        if let uiImage {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Image(systemName: "person.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .padding(28)
+                                .foregroundStyle(.blue.opacity(0.2))
+                                
+                        }
+                        
+                    }
+                    
+                    
+                    
+                }
+                .background(.thickMaterial)
+                .blur(radius: 0.1)
+                
+            }
+            
+            .frame(width: size, height: size)
+            .clipShape(Circle())
+            .shadow(color: .white,radius: 2)}
+        
+
+    
+}
+
+struct SignUpInformationView: View{
+    @StateObject var photosPickerViewModel = PhotosPickerViewModel()
+    @StateObject var alertsViewModel = AlertsViewModel()
+    @EnvironmentObject var userViewModel: UserViewModel
+    var body: some View{
+         let dbUser = userViewModel.dbUser
+        let isReady =
+        (!(dbUser?.bio?.isEmpty ?? true)) &&
+        (!(dbUser?.username?.isEmpty ?? true)) &&
+        photosPickerViewModel.item != nil
+        
+        ZStack{
+            Color.black
+                .opacity(0.08)
+                .ignoresSafeArea()
+            
+            VStack{
+                InformationView(alertsViewModel: alertsViewModel,photosPickerViewModel: photosPickerViewModel, saveOn: .onSubmit)
+                
+                ZStack{
+                    Color(.blue)
+                GlassyEffectView {
+                   
+                        Button("Continue") {
+                            
+                            photosPickerViewModel.isUpdateOn = true
+                        }
+                        .disabled(!isReady)
+                        
+                    }
+                    
+                .foregroundStyle(.white)
+                .opacity(isReady ? 1 : 0.5)
+
+                }
+                .frame(maxWidth: .infinity, maxHeight: 65)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                
+
+            }
+            .padding()
+            .padding(.top, 20)
+            
+        }
+           
+
+
+            }
+}
+
+struct InformationView: View {
+    @ObservedObject var alertsViewModel: AlertsViewModel
+    @EnvironmentObject var routerViewModel: RouterViewModel
+    @EnvironmentObject var userViewModel: UserViewModel
+    @ObservedObject var photosPickerViewModel: PhotosPickerViewModel
+    var saveOn: PhotoPickerSaveOn
+    var body: some View {
+          
+            VStack(alignment: .center,spacing: 25){
+                PhotosPicker(selection: $photosPickerViewModel.item) {
+                    
+                    VStack(spacing: 15){
+                        ProfileImageView(size: 125,uiImage: photosPickerViewModel.image)
+                        Text("Choose Picture")
+                    }
+                }
+               
+
+                
+               
+                    .foregroundStyle(.black.opacity(0.25))
+                EditorPreviewView(sectionName: "Name", keyPath: \.username)
+                    .onTapGesture {
+                        routerViewModel.activeSheet = .editorSheet(.nameEditor)
+                    }
+                EditorPreviewView(sectionName: "Bio",keyPath:  \.bio)
+                    .onTapGesture {
+                        routerViewModel.activeSheet = .editorSheet(.bioEditor)
+                    }
+                EditorPreviewView(sectionName: "Email", keyPath:  \.email)
+                
+                Spacer()
+                
+            }
+          
+        
+        .onAppear {
+            if photosPickerViewModel.item == nil{
+                photosPickerViewModel.subscribe(userVM: userViewModel, alertsVm: alertsViewModel)
+            }
+            }
+        
+    }
+}
+
+struct GeneralTabButtonView: View {
+    var selection: ChatTab
+    var isSelected: Bool
+    var body: some View {
+        ZStack{
+            if isSelected{
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.thinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(lineWidth: 2)
+                            .foregroundStyle(
+                                LinearGradient(colors: [.glassWhite, .slateGray ,.clear,.slateGray,.glassWhite], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                
+                            )
+                            .blur(radius: 0.6)
+                        
+                    }
+            }
+            
+            VStack{
+                let details = selection.details
+                
+                Image(systemName: details.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                if isSelected{
+                    
+                    Text("\( details.label)")
+                }
+                
+                
+            }
+            .foregroundStyle(.black.opacity(0.7))
+        }
+        
+        .frame(width: 80, height: 80)
+        
+    }
+}
+
+struct GeneralTabView: View {
+    var body: some View {
+        HStack{
+            Spacer()
+            ForEach(ChatTab.allCases, id: \.rawValue){ tab in
+                GeneralTabButtonView(selection: tab, isSelected: tab.rawValue == 0)
+                Spacer()
+                
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 30)
+                .fill(.softPurple)
+                .opacity(0.4)
+                .blur(radius: 0.3)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(lineWidth: 1)
+                        .foregroundStyle(
+                            LinearGradient(colors: [.glassWhite, .slateGray ,.clear,.slateGray,.glassWhite], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            
+                        )
+                        .blur(radius: 0.6)
+                    
+                }
+                .opacity(0.5)
+            
+            
+        )
+        
+        
+        
+        
+    }
+}
+
+
+#Preview {
+    
+    
+    SignUpInformationView()
+        .environmentObject(UserViewModel())
+        .environmentObject(RouterViewModel())
+}
