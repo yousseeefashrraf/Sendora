@@ -60,6 +60,7 @@ class RouterViewModel: ObservableObject{
     @Published var selectedTab: RouterTab
     @Published var path = NavigationPath()
     @Published var activeSheet: SheetTab?
+    @Published var isInitializing: Bool = true
     
     init(){
         UserDefaultsManager.shared.initiate(forType: UserType.self)

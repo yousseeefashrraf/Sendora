@@ -26,15 +26,43 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
+// Create a main AppState class
+class AppState: ObservableObject {
+    @Published var routerViewModel = RouterViewModel()
+    @Published var userViewModel = UserViewModel()
+    @Published var coreDataManager = CoreDataManager()
+    
+    lazy var syncManager = SyncManager(
+        userViewModel: userViewModel,
+        coreDataManager: coreDataManager,
+        routerViewModel: routerViewModel
+    )
+}
+
 @main
 struct SendoraApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
+    @StateObject private var appState = AppState() // Single source of truth
+    @StateObject var imageCloudServices = ImageCloudServices()
+    @Environment(\.scenePhase) var scenePhase
+    @State var lastUpdate = Date()
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environmentObject(appState.routerViewModel)
+                .environmentObject(appState.userViewModel)
+                .environmentObject(imageCloudServices)
+                .task {
+                    await appState.syncManager.initialize()
+                }
+                .onChange(of: scenePhase){
+                    if(Date.now.timeIntervalSince(lastUpdate) >= 5){
+                        appState.routerViewModel.isInitializing = true
+                        appState.syncManager = SyncManager(userViewModel: appState.userViewModel, coreDataManager: appState.coreDataManager, routerViewModel: appState.routerViewModel)
+                    }
+                    lastUpdate = .now
+                    
+                }
         }
     }
-    
-    
 }

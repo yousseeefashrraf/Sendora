@@ -53,32 +53,6 @@ struct UserModel: Codable, Equatable {
     
 }
 
-class UserRouterCoordinator{
-    private var cancellables = Set<AnyCancellable>()
-    
-    init(userVM: UserViewModel, routerVM: RouterViewModel){
-        
-        Publishers.CombineLatest(userVM.$authUser, userVM.$dbUser)
-            .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
-            .sink { authUser, dbUser in
-                if let _ = authUser {
-                    if let dbUser = dbUser {
-                        if dbUser.isNewUser {
-                            routerVM.routeToSignUpInfo()
-                        } else {
-                            routerVM.routeToHome()
-                        }
-                    }
-                } else {
-                    routerVM.routeToSignUp()
-                }
-            }
-            .store(in: &cancellables)
-    
-    }
-}
-
 class UserViewModel: ObservableObject{
      @Published var dbUser: UserModel?
      var cancellables = Set<AnyCancellable>()
@@ -95,10 +69,6 @@ class UserViewModel: ObservableObject{
                     self.authUser = user
                 }
             }
-            
-            
-            
-          
         }
         
         $authUser
@@ -121,17 +91,25 @@ class UserViewModel: ObservableObject{
         
     }
     
-    @MainActor func fetchDBUser() async throws{
+    @MainActor func fetchDBUser() async throws {
         guard dbUser == nil else { return }
-        if let uid = Auth.auth().currentUser?.uid{
-            
-                try await dbUser = DBServicesManager.shared.getDocument(collection: .users, documentId: uid, documentType: UserModel.self) as? UserModel
-            
-            
+        if let uid = Auth.auth().currentUser?.uid {
+            do {
+                let fetchedUser = try await DBServicesManager.shared.getDocument(
+                    collection: .users,
+                    documentId: uid,
+                    documentType: UserModel.self
+                ) as? UserModel
+                
+                self.dbUser = fetchedUser
+            } catch {
+                print("Failed to fetch user: \(error)")
+                throw error
+            }
         }
-        
     }
-    
+
+
     @MainActor func updateUserProperty<T>(keypath: WritableKeyPath<UserModel, T>, newValue: T, forKey key: CodingKey) async throws{
         if var user = self.dbUser{
             user[keyPath: keypath] = newValue

@@ -172,8 +172,8 @@ struct EditorPreviewView: View{
 
 struct ProfileImageView: View{
     var size: CGFloat
-
     var uiImage: UIImage?
+    
     var body: some View{
         
             ZStack{
@@ -218,13 +218,16 @@ struct SignUpInformationView: View{
     @StateObject var photosPickerViewModel = PhotosPickerViewModel()
     @StateObject var alertsViewModel = AlertsViewModel()
     @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var imageCloudServices: ImageCloudServices
+
     var body: some View{
-         let dbUser = userViewModel.dbUser
-        let isReady =
-        (!(dbUser?.bio?.isEmpty ?? true)) &&
-        (!(dbUser?.username?.isEmpty ?? true)) &&
-        photosPickerViewModel.item != nil
         
+        let dbUser = userViewModel.dbUser
+        let isReady =
+        (!(userViewModel.dbUser?.bio?.isEmpty ?? true)) &&
+        (!(userViewModel.dbUser?.username?.isEmpty ?? true)) &&
+        ((((userViewModel.dbUser?.profilePicture != nil)) &&
+          ((userViewModel.dbUser?.profilePicture != ""))) || photosPickerViewModel.item != nil)
         ZStack{
             Color.black
                 .opacity(0.08)
@@ -233,35 +236,44 @@ struct SignUpInformationView: View{
             VStack{
                 InformationView(alertsViewModel: alertsViewModel,photosPickerViewModel: photosPickerViewModel, saveOn: .onSubmit)
                 
-                ZStack{
-                    Color(.blue)
-                GlassyEffectView {
-                   
-                        Button("Continue") {
-                            
-                            photosPickerViewModel.isUpdateOn = true
-                        }
-                        .disabled(!isReady)
-                        
-                    }
-                    
-                .foregroundStyle(.white)
-                .opacity(isReady ? 1 : 0.5)
-
-                }
-                .frame(maxWidth: .infinity, maxHeight: 65)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
                 
-
+                
+                Button(){
+                    photosPickerViewModel.isUpdateOn = true
+                } label:{
+                    ZStack{
+                        Color(.blue)
+                        
+                        Text("Continue")
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: 65)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .opacity(isReady ? 1 : 0.5)
+                }
+                .disabled(!isReady)
+                
+                
+                
+                .foregroundStyle(.white)
+                
+                
             }
             .padding()
             .padding(.top, 20)
             
+            
+            
+            
+            
+            ImageLoadingView(loadingPercentage: imageCloudServices.progress)
+                .blur(radius: imageCloudServices.progress == 1 ? 40 : 0)
+            
         }
+    }
            
 
 
-            }
+            
 }
 
 struct InformationView: View {
@@ -269,6 +281,8 @@ struct InformationView: View {
     @EnvironmentObject var routerViewModel: RouterViewModel
     @EnvironmentObject var userViewModel: UserViewModel
     @ObservedObject var photosPickerViewModel: PhotosPickerViewModel
+    @EnvironmentObject var imageCloudServices: ImageCloudServices
+    @State var uiProfilePic: UIImage?
     var saveOn: PhotoPickerSaveOn
     var body: some View {
           
@@ -276,7 +290,18 @@ struct InformationView: View {
                 PhotosPicker(selection: $photosPickerViewModel.item) {
                     
                     VStack(spacing: 15){
-                        ProfileImageView(size: 125,uiImage: photosPickerViewModel.image)
+                        
+                        ProfileImageView(size: 125,uiImage: photosPickerViewModel.image ?? uiProfilePic)
+                            .task {
+                               let image = await CacheManagerServices.shared.getProfileImage(forString: userViewModel.dbUser?.profilePicture ?? "")
+                                await MainActor.run {
+                                    uiProfilePic = image
+                                    
+                                   
+                                   
+                                }
+                                
+                            }
                         Text("Choose Picture")
                     }
                 }
@@ -302,7 +327,7 @@ struct InformationView: View {
         
         .onAppear {
             if photosPickerViewModel.item == nil{
-                photosPickerViewModel.subscribe(userVM: userViewModel, alertsVm: alertsViewModel)
+                photosPickerViewModel.subscribe(userVM: userViewModel, alertsVm: alertsViewModel, imageCloudServices: imageCloudServices)
             }
             }
         

@@ -20,7 +20,7 @@ func getTopViewController() -> UIViewController?{
     var top = root
     
     while let presented = top?.presentedViewController{
-        top = root
+        top = presented
     }
     
     return top
