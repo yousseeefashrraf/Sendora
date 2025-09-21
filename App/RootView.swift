@@ -20,7 +20,7 @@ struct RootView: View {
             LoadingView()
         } else {
             ZStack {
-                if routerViewModel.selectedTab == .home {
+              if  let _ = routerViewModel.homeIndex {
                     VStack{}
                         .transition(.move(edge: .top))
                 }

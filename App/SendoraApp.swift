@@ -45,6 +45,7 @@ struct SendoraApp: App {
     @StateObject private var appState = AppState() // Single source of truth
     @StateObject var imageCloudServices = ImageCloudServices()
     @Environment(\.scenePhase) var scenePhase
+  @StateObject var chatsViewModel = ChatsViewModel(isTesting: true)
     @State var lastUpdate = Date()
     var body: some Scene {
         WindowGroup {
@@ -52,11 +53,14 @@ struct SendoraApp: App {
                 .environmentObject(appState.routerViewModel)
                 .environmentObject(appState.userViewModel)
                 .environmentObject(imageCloudServices)
+                .environmentObject(chatsViewModel)
                 .task {
                     await appState.syncManager.initialize()
                 }
                 .onChange(of: scenePhase){
+                    
                     if(Date.now.timeIntervalSince(lastUpdate) >= 5){
+                    
                         appState.routerViewModel.isInitializing = true
                         appState.syncManager = SyncManager(userViewModel: appState.userViewModel, coreDataManager: appState.coreDataManager, routerViewModel: appState.routerViewModel)
                     }

@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 import SwiftDefaults
 
-enum ChatTab: Int ,CaseIterable{
+enum HomeTab: Int ,CaseIterable{
 
     
     case chat = 0, calls,stories, settings
@@ -24,8 +24,8 @@ enum ChatTab: Int ,CaseIterable{
 
 
 enum RouterTab: Hashable {
-    case signIn, signUp, entry, home, info, signUpInfo
-    case chatTab(ChatTab)
+    case signIn, signUp, entry, info, signUpInfo
+    case home(HomeTab)
 }
 
 
@@ -61,13 +61,14 @@ class RouterViewModel: ObservableObject{
     @Published var path = NavigationPath()
     @Published var activeSheet: SheetTab?
     @Published var isInitializing: Bool = true
-    
+    @Published var homeIndex: Int?
+  
     init(){
         UserDefaultsManager.shared.initiate(forType: UserType.self)
         
         let value = UserDefaultsManager.shared.getStoredValue(forType: UserType.self)
         
-        selectedTab = UserType(rawValue: value ?? "") != nil ? .entry : .home
+      selectedTab = UserType(rawValue: value ?? "") != nil ? .entry : .home(.chat)
         
     }
     
@@ -91,7 +92,7 @@ class RouterViewModel: ObservableObject{
     }
     
     func routeToHome(){
-        selectedTab = .home
+      selectedTab = .home(.chat)
     }
     
     func routeToEntry(){

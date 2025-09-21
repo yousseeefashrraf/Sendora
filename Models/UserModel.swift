@@ -2,7 +2,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 import Combine
-struct UserModel: Codable, Equatable {
+struct UserModel: Codable, Equatable, Hashable {
     var bio: String?
     var profilePicture: String?
     var userId: String?

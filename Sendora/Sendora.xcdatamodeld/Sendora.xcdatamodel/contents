@@ -1,27 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
-    <entity name="AppChat" representedClassName="AppChat" syncable="YES" codeGenerationType="class">
-        <attribute name="chatId" optional="YES" attributeType="String"/>
-        <attribute name="isArchived" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isMuted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isPinned" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isRead" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25A354" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+    <entity name="AppChat" representedClassName=".AppChat" syncable="YES">
+        <attribute name="chatId" attributeType="String" defaultValueString=""/>
+        <attribute name="isArchived" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
+        <attribute name="isMuted" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
+        <attribute name="isPinned" optional="YES" attributeType="Boolean" usesScalarValueType="NO"/>
         <attribute name="lastUpdate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="messagesIds" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="AppMessage" inverseName="messageId" inverseEntity="AppMessage"/>
-        <relationship name="participantsIds" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="AppUser" inverseName="chatIds" inverseEntity="AppUser"/>
+        <relationship name="messagesIds" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="AppMessage" inverseName="chat" inverseEntity="AppMessage"/>
+        <relationship name="participants" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="AppUser" inverseName="chatIds" inverseEntity="AppUser"/>
     </entity>
-    <entity name="AppMessage" representedClassName="AppMessage" syncable="YES" codeGenerationType="class">
-        <attribute name="chatId" optional="YES" attributeType="String"/>
-        <attribute name="content" optional="YES" attributeType="String"/>
-        <attribute name="isRead" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isStarred" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="lastUpdate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="receiverId" optional="YES" attributeType="String"/>
-        <attribute name="sender_Id" optional="YES" attributeType="String"/>
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="messageId" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="AppChat" inverseName="messagesIds" inverseEntity="AppChat"/>
+    <entity name="AppMessage" representedClassName=".AppMessage" syncable="YES">
+        <attribute name="isRead" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="NO"/>
+        <attribute name="isStarred" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="NO"/>
+        <attribute name="messageId" attributeType="String" defaultValueString=""/>
+        <attribute name="senderId" attributeType="String" defaultValueString=""/>
+        <attribute name="timestamp" attributeType="Date" defaultDateTimeInterval="780078840" usesScalarValueType="NO"/>
+        <relationship name="chat" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="AppChat" inverseName="messagesIds" inverseEntity="AppChat"/>
+        <relationship name="messageContent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MessageContent" inverseName="message" inverseEntity="MessageContent"/>
     </entity>
-    <entity name="AppUser" representedClassName="AppUser" syncable="YES" codeGenerationType="class">
+    <entity name="AppUser" representedClassName=".AppUser" syncable="YES">
         <attribute name="bio" optional="YES" attributeType="String"/>
         <attribute name="dateCreated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="email" optional="YES" attributeType="String"/>
@@ -30,6 +27,11 @@
         <attribute name="lastUpdate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="profilePicture" optional="YES" attributeType="String"/>
         <attribute name="username" optional="YES" attributeType="String"/>
-        <relationship name="chatIds" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="AppChat" inverseName="participantsIds" inverseEntity="AppChat"/>
+        <relationship name="chatIds" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="AppChat" inverseName="participants" inverseEntity="AppChat"/>
+    </entity>
+    <entity name="MessageContent" representedClassName=".MessageContent" parentEntity="AppMessage" syncable="YES">
+        <attribute name="content" optional="YES" attributeType="String"/>
+        <attribute name="isImage" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="AppMessage" inverseName="messageContent" inverseEntity="AppMessage"/>
     </entity>
 </model>

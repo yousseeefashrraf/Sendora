@@ -173,11 +173,11 @@ struct EditorPreviewView: View{
 struct ProfileImageView: View{
     var size: CGFloat
     var uiImage: UIImage?
-    
+  var color = Color.blue
     var body: some View{
         
             ZStack{
-                Color.blue
+              color
                     .opacity(0.7)
                     .blur(radius: 20)
                 GlassyEffectView{
@@ -191,8 +191,8 @@ struct ProfileImageView: View{
                             Image(systemName: "person.fill")
                                 .resizable()
                                 .scaledToFit()
-                                .padding(28)
-                                .foregroundStyle(.blue.opacity(0.2))
+                                .padding(10)
+                                .foregroundStyle(color.opacity(0.2))
                                 
                         }
                         
@@ -334,84 +334,6 @@ struct InformationView: View {
     }
 }
 
-struct GeneralTabButtonView: View {
-    var selection: ChatTab
-    var isSelected: Bool
-    var body: some View {
-        ZStack{
-            if isSelected{
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.thinMaterial)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(lineWidth: 2)
-                            .foregroundStyle(
-                                LinearGradient(colors: [.glassWhite, .slateGray ,.clear,.slateGray,.glassWhite], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                
-                            )
-                            .blur(radius: 0.6)
-                        
-                    }
-            }
-            
-            VStack{
-                let details = selection.details
-                
-                Image(systemName: details.image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                if isSelected{
-                    
-                    Text("\( details.label)")
-                }
-                
-                
-            }
-            .foregroundStyle(.black.opacity(0.7))
-        }
-        
-        .frame(width: 80, height: 80)
-        
-    }
-}
-
-struct GeneralTabView: View {
-    var body: some View {
-        HStack{
-            Spacer()
-            ForEach(ChatTab.allCases, id: \.rawValue){ tab in
-                GeneralTabButtonView(selection: tab, isSelected: tab.rawValue == 0)
-                Spacer()
-                
-            }
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 30)
-                .fill(.softPurple)
-                .opacity(0.4)
-                .blur(radius: 0.3)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(lineWidth: 1)
-                        .foregroundStyle(
-                            LinearGradient(colors: [.glassWhite, .slateGray ,.clear,.slateGray,.glassWhite], startPoint: .topLeading, endPoint: .bottomTrailing)
-                            
-                        )
-                        .blur(radius: 0.6)
-                    
-                }
-                .opacity(0.5)
-            
-            
-        )
-        
-        
-        
-        
-    }
-}
 
 
 #Preview {
