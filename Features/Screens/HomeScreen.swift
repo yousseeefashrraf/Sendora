@@ -22,7 +22,7 @@ struct HomeScreenTabView: View {
             VStack{
               Image(systemName: tab.details.image)
               
-              Text(tab.details.label)
+              
             }
         }
         
@@ -41,14 +41,8 @@ struct HomeScreenTabView: View {
 
 
 #Preview {
-  let router = RouterViewModel()
-  router.homeIndex = 0
-  router.selectedTab = .home(.chat)
-  
-  let chatvm = ChatsViewModel(isTesting: true) // or a mock
-  
- return HomeScreenTabView()
-    .environmentObject(router)
-    .environmentObject(chatvm)
+
+  HomeScreenTabView()
+
     
 }

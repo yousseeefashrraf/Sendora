@@ -21,7 +21,7 @@ struct RootView: View {
         } else {
             ZStack {
               if  let _ = routerViewModel.homeIndex {
-                    VStack{}
+                    HomeScreenTabView()
                         .transition(.move(edge: .top))
                 }
 

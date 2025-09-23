@@ -2,9 +2,8 @@ import Foundation
 import SwiftUI
 import FirebaseCore
 import Firebase
-import FirebaseFirestoreSwift
-
-struct ContentModel: Codable, Equatable {
+import FirebaseFirestoreCombineSwift
+struct ContentModel: Codable, Equatable, Hashable {
     var content: String
     var isImage: Bool
 
@@ -19,9 +18,10 @@ struct ContentModel: Codable, Equatable {
     }
 }
 
-struct MessageModel: Codable {
+struct MessageModel: Codable, Equatable,Hashable {
   
-   @DocumentID var chatId: String?
+  
+    var chatId: String?
     var content: ContentModel
     var isRead: Bool
     var isStarred: Bool

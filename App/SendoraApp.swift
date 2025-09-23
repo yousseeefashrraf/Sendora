@@ -32,6 +32,7 @@ class AppState: ObservableObject {
     @Published var userViewModel = UserViewModel()
     @Published var coreDataManager = CoreDataManager()
     
+
     lazy var syncManager = SyncManager(
         userViewModel: userViewModel,
         coreDataManager: coreDataManager,
@@ -45,15 +46,14 @@ struct SendoraApp: App {
     @StateObject private var appState = AppState() // Single source of truth
     @StateObject var imageCloudServices = ImageCloudServices()
     @Environment(\.scenePhase) var scenePhase
-  @StateObject var chatsViewModel = ChatsViewModel(isTesting: true)
     @State var lastUpdate = Date()
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(appState.routerViewModel)
                 .environmentObject(appState.userViewModel)
+                .environmentObject(appState.coreDataManager)
                 .environmentObject(imageCloudServices)
-                .environmentObject(chatsViewModel)
                 .task {
                     await appState.syncManager.initialize()
                 }

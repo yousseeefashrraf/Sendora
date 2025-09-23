@@ -3,7 +3,11 @@ import Combine
 import Foundation
 import SwiftUI
 import FirebaseFirestore
-import FirebaseFirestoreSwift
+
+
+enum CoreDataError: Error{
+  case doesntExist
+}
 
 class CoreDataManager: ObservableObject {
   let container: NSPersistentContainer
@@ -121,9 +125,7 @@ class CoreDataManager: ObservableObject {
   }
   
   func castChatToModel(appChat app: AppChat) -> ChatModel {
-    let participants: [String] = app.participants?.allObjects.compactMap { element in
-      return element as? String
-    } ?? []
+    let participants: [String] = (app.participants?.allObjects as? [AppUser])?.compactMap {$0.id } ?? []
     
     let model = ChatModel(
       chatId: app.chatId ?? "",
@@ -143,8 +145,13 @@ class CoreDataManager: ObservableObject {
     appModel.isArchived = model.isArchived
     appModel.isMuted = model.isMuted
     appModel.isPinned = model.isPinned
-    appModel.participants = NSSet(array: participants)
     appModel.lastUpdate = model.lastUpdate
+    
+    // Only attach participants that match model.participantsIds
+    let matchingParticipants = participants.filter { user in
+      model.participantsIds.contains(user.id ?? "")
+    }
+    appModel.participants = NSSet(array: matchingParticipants)
     
     try? container.viewContext.save()
     return appModel
@@ -182,26 +189,47 @@ class CoreDataManager: ObservableObject {
     
     do {
       let chats = try container.viewContext.fetch(request)
+      if chats.count == 0 {
+        throw CoreDataError.doesntExist
+      }
       let usersIds: Set<String> = Set(chats.flatMap { chat in
         (chat.participants?.allObjects as? [AppUser])?.compactMap(\.id) ?? []
       }).subtracting(fetchedUsers) // this can have a bug
       
+      let chatModels = chats.compactMap{ castChatToModel(appChat: $0) }
+      
+      if usersIds.isEmpty {
+        return (chatModels, lastDocument, [])
+      }
+      
+      
+      
       let userRequest = NSFetchRequest<AppUser>(entityName: "AppUser")
       userRequest.predicate = NSPredicate(format: "id IN %@", usersIds)
+    
       let users = try container.viewContext.fetch(userRequest)
       
-      let chatModels = chats.compactMap{ castChatToModel(appChat: $0) }
       let userModels: [UserModel] = users.compactMap {makeUserModel(from: $0)}
+      
+      
       return (chatModels, lastDocument, userModels)
+      
+      
+      
     } catch {
+      
       print("Core Data fetch error: \(error)")
     }
     
     // Fallbacks: try local again, otherwise fetch from remote and map
     do {
       let chats = try container.viewContext.fetch(request)
+      if chats.count == 0 {
+        throw CoreDataError.doesntExist
+      }
       let chatModels = chats.map { castChatToModel(appChat: $0) }
       return (chatModels, lastDocument, [])
+      
     } catch {
       print("Core Data fallback error: \(error)")
       // Remote fetch as final fallback
@@ -214,6 +242,7 @@ class CoreDataManager: ObservableObject {
       
       return remote
     }
+    
   }
   
   func castMessageToCore(messageModel: MessageModel, appChat: AppChat) -> AppMessage{

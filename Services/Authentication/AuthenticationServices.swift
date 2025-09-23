@@ -152,7 +152,11 @@ class AuthenticationServices: ObservableObject{
                 
                 try await signIn(withCredential: credential)
                 
+              if let user = Auth.auth().currentUser{
+                
+              } else {
                 try await DBServicesManager.shared.createUser()
+              }
 
                 
                 

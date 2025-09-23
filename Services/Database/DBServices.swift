@@ -1,10 +1,10 @@
 import Firebase
 import FirebaseCore
 import Foundation
+import FirebaseAuth
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 
-enum Collections: String{
+enum Collections: String, CaseIterable{
   case users = "users", chats = "chat", messages = "message"
   
   var invalidCreateOperatingDescribiton: String{
@@ -96,6 +96,12 @@ class DBServicesManager{
     
     
     if let lastDocument { query = query.start(afterDocument: lastDocument) }
+    
+    do{
+      let chatsSnap = try? await query.getDocuments().documents
+    } catch {
+      print(error)
+    }
     
     let chatsSnap = try? await query.getDocuments().documents
     let lastSnap = chatsSnap?.last

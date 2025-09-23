@@ -1,11 +1,10 @@
 import Foundation
 import FirebaseCore
 import Firebase
-import FirebaseFirestoreSwift
 
 struct ChatModel: Codable, Hashable, Identifiable {
   
-   @DocumentID var id: String?
+    var id: String?
     var isArchived: Bool
     var isMuted: Bool
     var isPinned: Bool
@@ -63,11 +62,35 @@ struct ChatModel: Codable, Hashable, Identifiable {
 class ChatsViewModel: ObservableObject {
   
   @Published var chats: [ChatModel] = []
-  @Published var messages: [String: [MessageModel]] = [:] //for mockup
+  @Published var messages: [String: [MessageModel]] = [:]
   @Published var currentChat: ChatModel?
-
+  @Published var lastDocuments: [String: DocumentSnapshot?] = [:]
+  @Published var fetchedUsers: [UserModel] = []
   
-  init(isTesting: Bool){
+  func getChatsAndUseres(userVm: UserViewModel, coreManager: CoreDataManager){
+    
+    for i in Collections.allCases {
+      lastDocuments[i.rawValue] = nil
+    }
+    guard let id = userVm.dbUser?.userId else { return }
+    let fetchedIds = fetchedUsers.compactMap { $0.userId }
+    Task{
+      let result = await coreManager.getChatsAndUsers(lastDocument: lastDocuments[Collections.chats.rawValue] ?? nil, userId: id, fetchedUsers: fetchedIds)
+      
+      await MainActor.run {
+        fetchedUsers.append(contentsOf: result.2)
+        chats = result.0
+        
+        lastDocuments[Collections.chats.rawValue] = result.1
+        
+        
+        
+      }
+      
+    }
+  }
+  
+ /* init(isTesting: Bool){
     guard isTesting else {return}
     
     let chat1 = ChatModel(chatId: "chat1",lastUpdate: .now, participantsIds: ["1","2"])
@@ -102,5 +125,5 @@ class ChatsViewModel: ObservableObject {
     }
     
     print(messages)
-  }
+  } */
 }

@@ -46,7 +46,7 @@ enum SheetTab: Hashable, Identifiable {
 }
 
 
-enum UserType:String, DefaultValue{
+enum UserType:String, DefaultValue {
     typealias DefaultType = UserType
     
     case newUser = "newUser", currentUser = "currentUser"
@@ -93,6 +93,7 @@ class RouterViewModel: ObservableObject{
     
     func routeToHome(){
       selectedTab = .home(.chat)
+      homeIndex = 0
     }
     
     func routeToEntry(){
