@@ -17,46 +17,35 @@ class CacheManagerServices{
     let splitedString = picString.split(separator: "/")
     guard !splitedString.isEmpty else {return nil}
     let key = String(splitedString[splitedString.count - 1])
-    
     guard key != "" else {return nil}
     
-    if let uiImage = nsCache.get(key: key){
+    if let uiImage = nsCache.get(key: key) {
       return uiImage
+    } else if let diskImage = loadImageFromDisk(key: key) {
+      nsCache.add(key: key, value: diskImage)
+      return diskImage
     } else {
-      
-      guard let url = URL(string: picString),  let image = await NetworkServices.shared.getImageFromInternet(url: url) else {return nil}
+      guard let url = URL(string: picString),
+            let image = await NetworkServices.shared.getImageFromInternet(url: url)
+      else { return nil }
       
       nsCache.add(key: key, value: image)
+      saveImageToDisk(image, key: key)
       return image
     }
   }
   
-  func getDocument<T: Codable>(documentId: String, collection: Collections ) async throws(CacheManagerServices.cacheError) -> T{
-    guard let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("\(collection.rawValue)") else {throw .directoryDoesntExist}
-    
-    if !FileManager.default.fileExists(atPath: directory.path) {
-      try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    }
-    
-    let docPath = directory.appendingPathComponent("\(documentId).json")
-    
-    if FileManager.default.fileExists(atPath: docPath.path){
-
-      guard let data = try? Data(contentsOf: docPath) else {throw .enableToFetchData}
-      guard let document = try? JSONDecoder().decode(T.self, from: data) else {throw .enableToFetchData}
-      
-      return document
-    } else {
-      guard let fetchedDoc = try? await DBServicesManager.shared.getDocument(collection: collection, documentId: documentId, documentType: T.self) as? T, let data = try? JSONEncoder().encode(fetchedDoc)  else { throw .unknownUser}
-      
-      FileManager.default.createFile(atPath: docPath.path, contents: data)
-      
-      return fetchedDoc
-      
-    }
-  
+  func saveImageToDisk(_ image: UIImage, key: String) {
+    guard let data = image.pngData() else { return }
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(key).jpg")
+    try? data.write(to: url)
   }
   
+  func loadImageFromDisk(key: String) -> UIImage? {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(key).jpg")
+    guard let data = try? Data(contentsOf: url) else { return nil }
+    return UIImage(data: data)
+  }
   enum cacheError: String, Error{
     case directoryDoesntExist, enableToFetchData, networkError, unknownUser
   }
@@ -68,7 +57,7 @@ class NSCacheManagerServices{
   
   var cache: NSCache<NSString, UIImage> = {
     let cache = NSCache<NSString, UIImage>()
-    cache.countLimit = 100
+    cache.countLimit = 200
     cache.totalCostLimit = 1024 * 1024 * cache.countLimit
     return cache
   }()

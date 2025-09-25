@@ -69,20 +69,34 @@ class DBServicesManager{
     }
   }
   
-  func getMessages(forChat chatId: String, lastMessage: DocumentSnapshot?) async -> ([MessageModel], DocumentSnapshot?){
+  func getMessages(forChat chatId: String, lastMessage: DocumentSnapshot?, limit: Int = 40) async -> ([MessageModel], DocumentSnapshot?){
     
     var query = db.collection(Collections.chats.rawValue)
       .document(chatId)
       .collection(Collections.messages.rawValue)
       .whereField(MessageModel.CodingKeys.chatId.rawValue, isEqualTo: chatId)
       .order(by: MessageModel.CodingKeys.timestamp.rawValue, descending: true)
-      .limit(to: 40)
+      .limit(to: limit)
     if let lastMessage {
       query = query.start(afterDocument: lastMessage)
     }
     
     let snapshot = try? await query.getDocuments().documents
-    let messages = snapshot?.compactMap{ try? $0.data(as: MessageModel.self) } ?? []
+    
+    do{
+      let snapshot = try await query.getDocuments().documents
+    } catch{
+print("\(error)")
+    }
+    let messages: [MessageModel] = snapshot?.compactMap{
+      do{
+        return try $0.data(as: MessageModel.self)
+      } catch{
+        print("Error: \(error)")
+        return nil
+      }
+       }
+    ?? []
     
     return (messages, snapshot?.last)
   }

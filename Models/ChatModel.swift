@@ -62,10 +62,33 @@ struct ChatModel: Codable, Hashable, Identifiable {
 class ChatsViewModel: ObservableObject {
   
   @Published var chats: [ChatModel] = []
+  private var appChats: [AppChat] = []
   @Published var messages: [String: [MessageModel]] = [:]
   @Published var currentChat: ChatModel?
   @Published var lastDocuments: [String: DocumentSnapshot?] = [:]
   @Published var fetchedUsers: [UserModel] = []
+  
+  
+  func getMessages(forChat chat: AppChat, coreManager: CoreDataManager, limit: Int = 40){
+    guard let id =  chat.chatId  else { return }
+
+    Task{
+      let messages = await coreManager.getMessages(forChat: id, lastMessage: lastDocuments[Collections.messages.rawValue]?.flatMap{$0}, appChat: chat, limit: limit)
+      
+      await MainActor.run {
+        self.messages[id]?.append(contentsOf: messages.0.compactMap {coreManager.castMessageToModel(appMessage: $0)})
+        self.lastDocuments[Collections.messages.rawValue] = messages.1
+        
+        // for debug
+        print(messages.0.compactMap {coreManager.castMessageToModel(appMessage: $0)})
+        
+        print(messages.0.last?.messageContent?.content)
+        
+      }
+    }
+    
+  
+  }
   
   func getChatsAndUseres(userVm: UserViewModel, coreManager: CoreDataManager){
     
@@ -79,15 +102,19 @@ class ChatsViewModel: ObservableObject {
       
       await MainActor.run {
         fetchedUsers.append(contentsOf: result.2)
-        chats = result.0
-        
+        chats = result.0.compactMap { coreManager.castChatToModel(appChat: $0)}
+        appChats = result.0
         lastDocuments[Collections.chats.rawValue] = result.1
-        
-        
-        
+      }
+      for (chat) in result.0{
+        getMessages(forChat: chat, coreManager: coreManager, limit: 1)
       }
       
+    
+  
+      
     }
+    
   }
   
  /* init(isTesting: Bool){

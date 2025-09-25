@@ -19,9 +19,8 @@ struct ChatsView: View {
       NavigationStack{
         
         List($chatsViewModel.chats) { chat in
-          let content = chatsViewModel.messages[chat.id.wrappedValue ?? ""]?.last
-          
-          ChatListView(chat: chat, lastMessage: content)
+
+          ChatListView(chat: chat)
         }
         .listStyle(.inset)
         .frame(maxWidth: .infinity)
@@ -40,7 +39,6 @@ struct ChatsView: View {
 
 struct ChatListView: View {
   @Binding var chat: ChatModel
-  var lastMessage: MessageModel?
   @EnvironmentObject var userViewModel: UserViewModel
   @EnvironmentObject var chatsViewModel: ChatsViewModel
   @State var image: UIImage?
@@ -58,9 +56,9 @@ struct ChatListView: View {
         Text("\(name ?? "Unknown")")
           .bold()
         HStack{
-          
+          let lastMessage = chatsViewModel.messages[chat.id ?? ""]?.last
       
-        Text("\(lastMessage?.content.isImage == true ? "Image 🏞️" :  lastMessage?.content.content ?? "Start Chatting")")
+        Text("\(lastMessage?.content.isImage == true ? "Image 🏞️" :  lastMessage?.content.content ?? "Start Chating")")
           
         Spacer()
         if let message = lastMessage{

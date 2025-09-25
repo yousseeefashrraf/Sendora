@@ -168,7 +168,7 @@ class CoreDataManager: ObservableObject {
     }
   }
   
-  func getChatsAndUsers(lastDocument: DocumentSnapshot?, userId: String, fetchedUsers: [String]) async -> ([ChatModel], DocumentSnapshot?, [UserModel]){
+  func getChatsAndUsers(lastDocument: DocumentSnapshot?, userId: String, fetchedUsers: [String]) async -> ([AppChat], DocumentSnapshot?, [UserModel]){
     
     //Query
     let request = NSFetchRequest<AppChat>(entityName: "AppChat")
@@ -199,7 +199,7 @@ class CoreDataManager: ObservableObject {
       let chatModels = chats.compactMap{ castChatToModel(appChat: $0) }
       
       if usersIds.isEmpty {
-        return (chatModels, lastDocument, [])
+        return (chats, lastDocument, [])
       }
       
       
@@ -212,7 +212,7 @@ class CoreDataManager: ObservableObject {
       let userModels: [UserModel] = users.compactMap {makeUserModel(from: $0)}
       
       
-      return (chatModels, lastDocument, userModels)
+      return (chats, lastDocument, userModels)
       
       
       
@@ -228,7 +228,7 @@ class CoreDataManager: ObservableObject {
         throw CoreDataError.doesntExist
       }
       let chatModels = chats.map { castChatToModel(appChat: $0) }
-      return (chatModels, lastDocument, [])
+      return (chats, lastDocument, [])
       
     } catch {
       print("Core Data fallback error: \(error)")
@@ -240,7 +240,7 @@ class CoreDataManager: ObservableObject {
       
       try? container.viewContext.save()
       
-      return remote
+      return (appChats, remote.1, remote.2)
     }
     
   }
@@ -284,15 +284,15 @@ class CoreDataManager: ObservableObject {
     
   }
   
-  func getMessages(forChat chatId: String, lastMessage: DocumentSnapshot?, appChat: AppChat) async -> ([MessageModel], DocumentSnapshot?){
+  func getMessages(forChat chatId: String, lastMessage: DocumentSnapshot?, appChat: AppChat, limit: Int = 40) async -> ([AppMessage], DocumentSnapshot?){
     
    
       let request = NSFetchRequest<AppMessage>(entityName: "AppMessage")
-      request.fetchLimit = 40
+      request.fetchLimit = limit
       request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
       var predicates: [NSPredicate] = []
       
-      predicates.append(NSPredicate(format: "ANY chat.chatId %@", chatId))
+      predicates.append(NSPredicate(format: "chat.chatId == %@", chatId))
       
       if let lastMessage = try? lastMessage?.data(as: MessageModel.self)  {
         predicates.append(NSPredicate(format:"timestamp < %@", lastMessage.timestamp as NSDate))
@@ -303,14 +303,14 @@ class CoreDataManager: ObservableObject {
     
     do{
       let result = try container.viewContext.fetch(request)
-      return (result.compactMap{ castMessageToModel(appMessage: $0)}, lastMessage)
+      return (result, lastMessage)
     } catch{
       print("Message Error occured: \(error.localizedDescription)")
     }
       //local fallback
     do{
       let result = try container.viewContext.fetch(request)
-      return (result.compactMap{ castMessageToModel(appMessage: $0)}, lastMessage)
+      return (result, lastMessage)
     } catch{
       print("Message Error occured: \(error.localizedDescription)")
     }
@@ -318,7 +318,7 @@ class CoreDataManager: ObservableObject {
       var result = await DBServicesManager.shared.getMessages(forChat: chatId, lastMessage: lastMessage)
       let appMessages = result.0.compactMap{ castMessageToCore(messageModel: $0, appChat: appChat) }
       try? container.viewContext.save()
-      return result
+    return (appMessages, result.1)
 
     
     
