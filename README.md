@@ -98,15 +98,6 @@ Sendora/
 
 ---
 
-## 🧪 Testing
-
-- Unit tests for auth, models, Core Data  
-- Mocked network services  
-- UI tests for login → chat flow  
-- Performance benchmarks  
-
----
-
 ## 📈 Performance & Security
 
 - Multi-layer image caching (NSCache + disk)  
